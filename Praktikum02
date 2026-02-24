@@ -1,0 +1,74 @@
+-- Mengecek SRID Data dari kolom geometry
+SELECT 
+	ST_SRID(geom) as srid
+	FROM fasilitas_publik
+	LIMIT 1;
+
+-- Mengecek SRID semua tabel dalam database
+SELECT 
+	f_table_name, 
+	f_geometry_column, 
+	srid, 
+	type
+FROM geometry_columns;
+
+-- Mengecek informasi CRS
+SELECT * FROM spatial_ref_sys
+WHERE srid = 4326;
+
+-- Transofrmasi ke UTM 48S (32748)
+SELECT 
+	nama,
+		ST_AsText(geom) AS wgs84,
+		ST_AsText(ST_Transform(geom, 32748)
+  ) AS utm48s
+	FROM fasilitas_publik;
+
+-- Menghitung Jarak tanpa konversi (kurang akurat)
+SELECT 
+	ST_Distance
+		(a.geom, b.geom) AS jarak_derajat
+	FROM fasilitas_publik a
+	JOIN fasilitas_publik b 
+	ON a.nama = 'RS. Airan Raya'
+	AND b.nama = 'Navara City Park';
+
+-- Menghitung Jarak dengan geography (akurat)
+SELECT
+  a.nama as dari,
+  b.nama as ke,
+  ST_Distance(
+    a.geom::geography,
+    b.geom::geography
+  ) as jarak_m
+FROM fasilitas_publik a, fasilitas_publik b
+WHERE a.nama = 'RS. Airan Raya' AND b.nama = 'Kost Putri Els White House';
+
+-- Menghitung Jarak dengan transformasi ke UTM
+SELECT 
+  a.nama as dari,
+  b.nama as ke,
+  ST_Distance(
+    ST_Transform(a.geom, 32748),
+    ST_Transform(b.geom, 32748)
+) as jarak_m
+FROM fasilitas_publik a, fasilitas_publik b
+WHERE a.nama = 'RS. Airan Raya' AND b.nama = 'Kost Putri Els White House';
+
+-- Menghitung Luas Area dalam meter persegi
+SELECT
+nama_wilayah,
+  ST_Area(
+    ST_Transform(geom, 32748)
+  ) as luas_m2,
+  ST_Area(
+    ST_Transform(geom, 32748)
+  ) / 10000 as luas_ha
+FROM wilayah
+WHERE nama_wilayah = 'Kelurahan Bandar Jaya';
+
+-- Menghitung dengan alternatif seluruh kelurahan 
+SELECT
+	nama_wilayah,
+	ST_Area(geom::geography) as luas_m2
+FROM wilayah;
