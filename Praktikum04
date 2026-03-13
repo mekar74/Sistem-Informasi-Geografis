@@ -1,0 +1,70 @@
+-- Mengecek data sebelumnya
+SELECT * FROM fasilitas_publik;
+SELECT * FROM jalan;
+SELECT * FROM wilayah;
+
+-- Menghitung jarak 2 objek dengan menggunakan ST_Distance
+SELECT
+	a.nama AS dari,
+	b.nama AS ke,
+	ROUND(ST_Distance(
+		a.geom::geography,
+		b.geom::geography
+	)::numeric, 2) AS jarak_meter,
+	ROUND(ST_Distance(
+		a.geom::geography,
+		b.geom::geography
+	)::numeric / 1000, 3) AS jarak_km
+FROM fasilitas_publik a
+CROSS JOIN fasilitas_publik b
+WHERE a.id < b.id
+ORDER BY jarak_meter ASC;
+
+-- Query ST_Distance
+SELECT
+	f.nama AS fasilitas,
+	w.nama_wilayah,
+	ROUND(ST_Distance(
+		f.geom::geography,
+		w.geom::geography
+	)::numeric, 2) AS jarak_ke_wilayah_meter
+FROM fasilitas_publik f
+CROSS JOIN wilayah w
+ORDER BY f.nama, jarak_ke_wilayah_meter;
+
+-- Query ST_Intersects
+SELECT j.nama_jalan as nama
+FROM jalan j, wilayah k 
+WHERE k.nama_wilayah = 'Kecamatan Way Huwi' 
+AND ST_Intersects(j.geom, k.geom);
+
+SELECT f.nama, f.jenis 
+FROM fasilitas_publik f 
+JOIN wilayah k ON ST_Intersects(f.geom, k.geom) 
+WHERE k.nama_wilayah = 'Kecamatan Way Huwi';
+
+-- Query ST_Disjoint
+SELECT COUNT(*) as jml_tidak_bersentuhan 
+FROM wilayah a, wilayah b 
+WHERE a.id < b.id AND ST_Disjoint(a.geom, b.geom);
+
+-- Query ST_Touches
+SELECT 
+	a.nama_wilayah, 
+	b.nama_wilayah as berbatasan_dengan 
+FROM wilayah a, wilayah b 
+WHERE a.id < b.id 
+AND a.nama_wilayah = 'Kecamatan Way Huwi' 
+AND ST_Touches(a.geom, b.geom);
+
+-- Query ST_Contains
+SELECT k.nama_wilayah as wilayah
+FROM wilayah k 
+WHERE ST_Contains( k.geom, ST_GeomFromText('POINT(105.30 -5.36)', 4326));
+
+SELECT k.nama_wilayah, 
+COUNT(f.id) as jumlah 
+FROM wilayah k 
+LEFT JOIN fasilitas_publik f ON ST_Contains(k.geom, f.geom) 
+GROUP BY k.nama_wilayah 
+ORDER BY jumlah DESC;
