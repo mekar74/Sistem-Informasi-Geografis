@@ -1,0 +1,75 @@
+-- Buat schema untuk transportasi
+CREATE SCHEMA IF NOT EXISTS transportasi;
+
+-- Tabel: Halte Bus
+CREATE TABLE transportasi.halte (
+    id SERIAL PRIMARY KEY,
+    nama VARCHAR(100) NOT NULL,
+    kode VARCHAR(20) UNIQUE,
+    jenis VARCHAR(50), -- 'bus', 'brt', 'angkot'
+    alamat TEXT,
+    kapasitas INTEGER,
+    fasilitas TEXT[], -- array: {'kursi_tunggu', 'atap', 'papan_info'}
+    jam_operasi_mulai TIME,
+    jam_operasi_selesai TIME,
+    aktif BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    geom GEOMETRY(Point, 4326) -- POINT dalam WGS84
+);
+
+-- Tabel: Rute Angkutan
+CREATE TABLE transportasi.rute (
+    id SERIAL PRIMARY KEY,
+    kode_rute VARCHAR(20) UNIQUE NOT NULL,
+    nama_rute VARCHAR(100) NOT NULL,
+    jenis VARCHAR(50), -- 'bus_kota', 'brt', 'angkot'
+    warna VARCHAR(20), -- untuk visualisasi
+    panjang_km DECIMAL(10,2),
+    estimasi_waktu_menit INTEGER,
+    tarif INTEGER,
+    aktif BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    geom GEOMETRY(LineString, 4326) -- LINESTRING untuk rute
+);
+
+-- Tabel: Wilayah/Kecamatan
+CREATE TABLE transportasi.wilayah (
+    id SERIAL PRIMARY KEY,
+    kode_wilayah VARCHAR(20) UNIQUE,
+    nama VARCHAR(100) NOT NULL,
+    tipe VARCHAR(50), -- 'kecamatan', 'kelurahan', 'kota'
+    populasi INTEGER,
+    luas_km2 DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    geom GEOMETRY(Polygon, 4326) -- POLYGON untuk batas wilayah
+);
+
+-- Tabel: Kecelakaan Lalu Lintas
+CREATE TABLE transportasi.kecelakaan (
+    id SERIAL PRIMARY KEY,
+    tanggal DATE NOT NULL,
+    waktu TIME,
+    jenis_kecelakaan VARCHAR(50), -- 'ringan', 'sedang', 'berat', 'fatal'
+    jumlah_korban INTEGER DEFAULT 0,
+    jumlah_kendaraan INTEGER DEFAULT 1,
+    penyebab TEXT,
+    kondisi_jalan VARCHAR(50), -- 'baik', 'rusak', 'berlubang'
+    kondisi_cuaca VARCHAR(50), -- 'cerah', 'hujan', 'berkabut'
+    keterangan TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    geom GEOMETRY(Point, 4326)
+);
+
+-- Tabel: Lokasi Parkir
+CREATE TABLE transportasi.parkir (
+    id SERIAL PRIMARY KEY,
+    nama VARCHAR(100) NOT NULL,
+    jenis VARCHAR(50), -- 'mobil', 'motor', 'campuran'
+    kapasitas INTEGER,
+    tarif_per_jam INTEGER,
+    jam_buka TIME,
+    jam_tutup TIME,
+    pengelola VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    geom GEOMETRY(Point, 4326)
+);
