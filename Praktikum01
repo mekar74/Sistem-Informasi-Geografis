@@ -1,0 +1,12 @@
+-- Membuat database
+CREATE DATABASE SIG_Praktikum_123140074;
+
+-- Mengaktifkan extension PostGIS
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS postgis_topology;
+
+-- Mengecek Versi PostGIS
+SELECT PostGIS_Full_Version();
+
+-- Mengecek SRID yang tersedia
+SELECT * FROM spatial_ref_sys WHERE srid IN (4326, 32748, 32749) LIMIT 10;
