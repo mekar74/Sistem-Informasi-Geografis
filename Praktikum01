@@ -1,12 +1,30 @@
--- Membuat database
-CREATE DATABASE SIG_Praktikum_123140074;
++Membuat database
+CREATE DATABASE sig_123140074;
 
--- Mengaktifkan extension PostGIS
-CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE EXTENSION IF NOT EXISTS postgis_topology;
++Mengaktifkan ekstensi PostGIS
+CREATE EXTENSION postgis;
 
--- Mengecek Versi PostGIS
-SELECT PostGIS_Full_Version();
++Memverifikasi ekstensi
+SELECT PostGIS_Version();
 
--- Mengecek SRID yang tersedia
++Mengecek SRID yang tersedia
 SELECT * FROM spatial_ref_sys WHERE srid IN (4326, 32748, 32749) LIMIT 10;
+
++Membuat tabel
+CREATE TABLE fasilitas_publik (
+    id SERIAL PRIMARY KEY,
+    nama VARCHAR(100) NOT NULL,
+    jenis VARCHAR(50) NOT NULL,
+    alamat TEXT,
+    geom GEOMETRY (Point, 4326)
+);
+
++Memasukkan data
+INSERT INTO fasilitas_publik (nama, jenis, alamat, geom)
+VALUES
+('PB Swalayan','Supermarket','Harapan Jaya',ST_SetSRID(ST_MakePoint(105.30427249323198,-5.3604935036299315), 4326)),
+('Polisi Sektor','Kantor Polisi','Hi.Pangeransuhaimi',ST_SetSRID(ST_MakePoint(105.30541857975972,-5.359661765659998), 4326)),
+('Masjid Raya Airan','Tempat Ibadah','Hi.Pangeransuhaimi',ST_SetSRID(ST_MakePoint(105.3050511171439,-5.358753801011987), 4326)),
+('Pertamina','SPBU','Way Huwi',ST_SetSRID(ST_MakePoint(105.30626615776401,-5.358994144726639), 4326)),
+('Warkop Agam 77','Restoran','Ryacudu',ST_SetSRID(ST_MakePoint(105.3039081801232,-5.361814897673068), 4326));
+
