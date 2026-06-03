@@ -1,0 +1,41 @@
++Membuat zona layanan (Buffer)
+SELECT 
+    id, nama, jenis, 
+    ST_Buffer(geom::geography, 500)::geometry AS jangkauan_supermarket
+FROM fasilitas_publik 
+WHERE jenis = 'Supermarket';
+
+SELECT 
+    id, nama, jenis, 
+    ST_Buffer(geom::geography, 1000)::geometry AS jangkauan_restoran
+FROM fasilitas_publik 
+WHERE jenis = 'Restoran';
+
++Menggabungkan buffer yang sejenis
+SELECT 
+    ST_Union(ST_Buffer(geom::geography, 500)::geometry) AS total_zona_restoran
+FROM fasilitas_publik 
+WHERE jenis = 'Restoran';
+
++Mencari objek yang tumpang tindih
+WITH zona_tempat_ibadah AS (
+    SELECT ST_Union(ST_Buffer(geom::geography, 1000)::geometry) AS geom
+    FROM fasilitas_publik WHERE jenis = 'Tempat Ibadah'
+),
+zona_kantor_polisi AS (
+    SELECT ST_Union(ST_Buffer(geom::geography, 1000)::geometry) AS geom
+    FROM fasilitas_publik WHERE jenis = 'Kantor Polisi'
+)
+SELECT 
+    ST_Intersection(m.geom, s.geom) AS area_overlap_layanan,
+    ROUND((ST_Area(ST_Intersection(m.geom, s.geom)::geography) / 1000000)::numeric, 2) AS luas_overlap_km2
+FROM zona_tempat_ibadah m, zona_kantor_polisi s;
+
++Menghitung titik pusat wilayah
+SELECT 
+    id, 
+    nama, 
+    ST_AsText(ST_Centroid(geom)) AS koordinat_centroid,
+    ST_X(ST_Centroid(geom)) AS longitude_pusat,
+    ST_Y(ST_Centroid(geom)) AS latitude_pusat
+FROM wilayah;
