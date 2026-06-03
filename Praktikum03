@@ -1,74 +1,23 @@
--- Mengecek SRID Data dari kolom geometry
++Ujicoba Transformasi Data (GCS ke PCS)
 SELECT 
-	ST_SRID(geom) as srid
-	FROM fasilitas_publik
-	LIMIT 1;
+    nama,
+    ST_AsText(geom) AS koordinat_wgs84_derajat,
+    ST_AsText(ST_Transform(geom, 32748)) AS koordinat_utm48s_meter
+FROM fasilitas_publik;
 
--- Mengecek SRID semua tabel dalam database
++Menghitung Jarak antar fasilitas
 SELECT 
-	f_table_name, 
-	f_geometry_column, 
-	srid, 
-	type
-FROM geometry_columns;
-
--- Mengecek informasi CRS
-SELECT * FROM spatial_ref_sys
-WHERE srid = 4326;
-
--- Transofrmasi ke UTM 48S (32748)
-SELECT 
-	nama,
-		ST_AsText(geom) AS wgs84,
-		ST_AsText(ST_Transform(geom, 32748)
-  ) AS utm48s
-	FROM fasilitas_publik;
-
--- Menghitung Jarak tanpa konversi (kurang akurat)
-SELECT 
-	ST_Distance
-		(a.geom, b.geom) AS jarak_derajat
-	FROM fasilitas_publik a
-	JOIN fasilitas_publik b 
-	ON a.nama = 'RS. Airan Raya'
-	AND b.nama = 'Navara City Park';
-
--- Menghitung Jarak dengan geography (akurat)
-SELECT
-  a.nama as dari,
-  b.nama as ke,
-  ST_Distance(
-    a.geom::geography,
-    b.geom::geography
-  ) as jarak_m
+    a.nama AS asal, 
+    b.nama AS tujuan,
+    ST_Distance(ST_Transform(a.geom, 32748), ST_Transform(b.geom, 32748)) AS jarak_utm_meter
 FROM fasilitas_publik a, fasilitas_publik b
-WHERE a.nama = 'RS. Airan Raya' AND b.nama = 'Kost Putri Els White House';
+WHERE a.id < b.id --Menghindari duplikasi jarak terbalik dan jarak ke diri sendiri
+LIMIT 5;
 
--- Menghitung Jarak dengan transformasi ke UTM
++Menghitung luas wilayah UTM
 SELECT 
-  a.nama as dari,
-  b.nama as ke,
-  ST_Distance(
-    ST_Transform(a.geom, 32748),
-    ST_Transform(b.geom, 32748)
-) as jarak_m
-FROM fasilitas_publik a, fasilitas_publik b
-WHERE a.nama = 'RS. Airan Raya' AND b.nama = 'Kost Putri Els White House';
-
--- Menghitung Luas Area dalam meter persegi
-SELECT
-nama_wilayah,
-  ST_Area(
-    ST_Transform(geom, 32748)
-  ) as luas_m2,
-  ST_Area(
-    ST_Transform(geom, 32748)
-  ) / 10000 as luas_ha
-FROM wilayah
-WHERE nama_wilayah = 'Kelurahan Bandar Jaya';
-
--- Menghitung dengan alternatif seluruh kelurahan 
-SELECT
-	nama_wilayah,
-	ST_Area(geom::geography) as luas_m2
+    nama,
+    ST_Area(ST_Transform(geom, 32748)) AS luas_meter_persegi,
+    ST_Area(ST_Transform(geom, 32748)) / 10000 AS luas_hektar,
+    ST_Area(geom::geography) AS luas_geography_m2
 FROM wilayah;
