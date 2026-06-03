@@ -30,3 +30,13 @@ EXPLAIN ANALYZE
 SELECT COUNT(*) 
 FROM fasilitas_publik f, wilayah w
 WHERE ST_Intersects(f.geom, w.geom);
+
++Menguji kueri yang lambat (point = letak kost)
+EXPLAIN ANALYZE
+SELECT nama FROM fasilitas_publik
+WHERE ST_Distance(geom::geography, ST_GeomFromText('POINT(105.3048 -5.3613)', 4326)::geography) < 1000;
+
++Menguji kueri yang cepat
+EXPLAIN ANALYZE
+SELECT nama FROM fasilitas_publik
+WHERE ST_DWithin(geom::geography, ST_GeomFromText('POINT(105.3048 -5.3613)', 4326)::geography, 1000);
