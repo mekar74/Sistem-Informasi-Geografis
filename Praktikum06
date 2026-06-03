@@ -1,0 +1,32 @@
++Membuat minimal 3 spatial index dengan menggunakan GIST
+CREATE INDEX idx_fasilitas_publik_geom 
+ON fasilitas_publik USING GIST (geom);
+
+CREATE INDEX idx_jalan_geom 
+ON jalan USING GIST (geom);
+
+CREATE INDEX idx_wilayah_geom 
+ON wilayah USING GIST (geom);
+
+SELECT indexname, tablename 
+FROM pg_indexes 
+WHERE schemaname = 'public';
+
++Menjalankan Explain Analyze
+-- Nonaktifkan indeks sementara untuk melihat performa aslinya
+DROP INDEX IF EXISTS idx_fasilitas_publik_geom; 
+
+-- Jalankan kueri pengujian dengan EXPLAIN ANALYZE
+EXPLAIN ANALYZE
+SELECT COUNT(*) 
+FROM fasilitas_publik f, wilayah w
+WHERE ST_Intersects(f.geom, w.geom);
+
+-- Bangun kembali indeks spasial yang tadi dihapus
+CREATE INDEX idx_fasilitas_publik_geom ON fasilitas_publik USING GIST (geom);
+
+-- Jalankan kembali kueri pengujian yang sama dengan EXPLAIN ANALYZE
+EXPLAIN ANALYZE
+SELECT COUNT(*) 
+FROM fasilitas_publik f, wilayah w
+WHERE ST_Intersects(f.geom, w.geom);
